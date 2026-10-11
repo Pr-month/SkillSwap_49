@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configuration } from './config/app.config';
 import { AppDataSource } from './ormconfig';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AppDataSource } from './ormconfig';
       ...AppDataSource.options,
       autoLoadEntities: true,
     }),
+    UsersModule,
   ],
 })
 export class AppModule {}
