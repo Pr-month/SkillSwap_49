@@ -3,20 +3,24 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { configuration } from './config/app.config';
+import { appConfig } from './config/app.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { AppDataSource } from './orm.config';
+import { databaseConfig } from './config/database.config';
+import { type DataSourceOptions } from 'typeorm';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration],
+      load: [appConfig, databaseConfig],
     }),
-    TypeOrmModule.forRoot({
-      ...AppDataSource.options,
-      autoLoadEntities: true,
+    TypeOrmModule.forRootAsync({
+      inject: [databaseConfig.KEY],
+      useFactory: (config: DataSourceOptions) => ({
+        ...config,
+        autoLoadEntities: true,
+      }),
     }),
     UsersModule,
     AuthModule,
