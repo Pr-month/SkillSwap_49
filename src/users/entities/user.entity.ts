@@ -1,9 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}
+import { UserGender, UserRole } from '../users.enums';
 
 @Entity('users')
 export class User {
@@ -16,7 +12,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true })
   email!: string;
 
-  @Column({ type: 'varchar', select: false })
+  @Column({ type: 'varchar' })
   password!: string;
 
   @Column({ type: 'text', nullable: true })
@@ -28,8 +24,8 @@ export class User {
   @Column({ type: 'varchar', length: 100, nullable: true })
   city!: string | null;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  gender!: string | null;
+  @Column({ type: 'enum', enum: UserGender, nullable: true })
+  gender!: UserGender | null;
 
   @Column({ type: 'varchar', nullable: true })
   avatar!: string | null;
@@ -41,6 +37,6 @@ export class User {
   })
   role!: UserRole;
 
-  @Column({ type: 'varchar', nullable: true, select: false })
+  @Column({ type: 'varchar', nullable: true })
   refreshToken!: string | null;
 }
