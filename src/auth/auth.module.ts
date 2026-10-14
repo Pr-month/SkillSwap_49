@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
 import { JwtModule, type JwtModuleOptions } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { jwtConfig, type TJwtConfig } from '../config/jwt.config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { AccessTokenStrategy } from './strategies/access-token.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
 
 @Module({
   imports: [
+    PassportModule,
     JwtModule.registerAsync({
       inject: [jwtConfig.KEY],
       useFactory: (config: TJwtConfig): JwtModuleOptions => {
@@ -25,6 +29,6 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
 })
 export class AuthModule {}
