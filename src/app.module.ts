@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { appConfig } from './config/app.config';
+import { jwtConfig } from './config/jwt.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { appConfig } from './config/app.config';
@@ -13,7 +15,7 @@ import { type DataSourceOptions } from 'typeorm';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, jwtConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [databaseConfig.KEY],
