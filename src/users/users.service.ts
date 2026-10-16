@@ -16,6 +16,10 @@ export class UsersService {
     return this.userRepository.findOneBy({ email });
   }
 
+  findById(id: number): Promise<User | null> {
+    return this.userRepository.findOneBy({ id });
+  }
+
   create(userData: CreateUserData): Promise<User> {
     const user = this.userRepository.create(userData);
     return this.userRepository.save(user);
