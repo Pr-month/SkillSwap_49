@@ -58,6 +58,10 @@ export class AuthService {
     return { user, tokens };
   }
 
+  async logout(userId: number): Promise<void> {
+    await this.usersService.updateRefreshToken(userId, null);
+  }
+
   private async generateTokens(user: User): Promise<Tokens> {
     const payload: JwtPayload = {
       sub: user.id,
