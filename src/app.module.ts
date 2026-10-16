@@ -5,7 +5,6 @@ import { appConfig } from './config/app.config';
 import { jwtConfig } from './config/jwt.config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { appConfig } from './config/app.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './config/database.config';
