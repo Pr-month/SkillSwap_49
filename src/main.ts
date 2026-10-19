@@ -21,6 +21,8 @@ async function bootstrap() {
   );
   const config = app.get<TAppConfig>(appConfig.KEY);
 
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   await app.listen(config.port);
 }
 bootstrap();
