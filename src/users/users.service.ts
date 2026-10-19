@@ -15,9 +15,6 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
 
   async findAll(): Promise<PublicUserDto[]> {
     const users = await this.usersRepository.find();
@@ -26,19 +23,19 @@ export class UsersService {
   }
 
   findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOneBy({ email });
+    return this.usersRepository.findOneBy({ email });
   }
 
   create(userData: CreateUserData): Promise<User> {
-    const user = this.userRepository.create(userData);
-    return this.userRepository.save(user);
+    const user = this.usersRepository.create(userData);
+    return this.usersRepository.save(user);
   }
 
   async updateRefreshToken(
     userId: number,
     refreshTokenHash: string | null,
   ): Promise<void> {
-    await this.userRepository.update(userId, {
+    await this.usersRepository.update(userId, {
       refreshToken: refreshTokenHash,
     });
   }
