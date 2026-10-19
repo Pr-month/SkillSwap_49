@@ -13,7 +13,7 @@ export class User {
   @Column({ type: 'varchar', length: 255, unique: true })
   email!: string;
 
-  @Exclude()
+  @Exclude({ toPlainOnly: true })
   @Column({ type: 'varchar' })
   password!: string;
 
@@ -39,7 +39,7 @@ export class User {
   })
   role!: UserRole;
 
-  @Exclude()
+  @Exclude({ toPlainOnly: true })
   @Column({ type: 'varchar', nullable: true })
   refreshToken!: string | null;
 }
