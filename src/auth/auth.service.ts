@@ -1,10 +1,16 @@
-import { Injectable, ConflictException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { hash } from 'bcryptjs';
+import { compare, hash } from 'bcryptjs';
 import { jwtConfig, type TJwtConfig } from '../config/jwt.config';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { type JwtPayload, type Tokens } from './auth.types';
 
 @Injectable()
@@ -33,6 +39,27 @@ export class AuthService {
     const refreshTokenHash = await hash(tokens.refreshToken, 10);
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
     return { user, tokens };
+  }
+
+  async login(loginDto: LoginDto): Promise<{ user: User; tokens: Tokens }> {
+    const user = await this.usersService.findByEmail(loginDto.email);
+    if (!user) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+
+    const isPasswordValid = await compare(loginDto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Неверный email или пароль');
+    }
+    const tokens = await this.generateTokens(user);
+    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
+
+    return { user, tokens };
+  }
+
+  async logout(userId: number): Promise<void> {
+    await this.usersService.updateRefreshToken(userId, null);
   }
 
   private async generateTokens(user: User): Promise<Tokens> {
