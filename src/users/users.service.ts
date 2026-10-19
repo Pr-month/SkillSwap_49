@@ -6,6 +6,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PublicUserDto } from './dto/public-user.dto';
 import { User } from './entities/user.entity';
 
+type CreateUserData = Pick<User, 'name' | 'email' | 'password'>;
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -23,15 +25,21 @@ export class UsersService {
     return users.map((user) => new PublicUserDto(user));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOneBy({ email });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  create(userData: CreateUserData): Promise<User> {
+    const user = this.userRepository.create(userData);
+    return this.userRepository.save(user);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async updateRefreshToken(
+    userId: number,
+    refreshTokenHash: string | null,
+  ): Promise<void> {
+    await this.userRepository.update(userId, {
+      refreshToken: refreshTokenHash,
+    });
   }
 }
