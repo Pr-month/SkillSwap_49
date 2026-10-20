@@ -13,6 +13,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { type JwtPayload, type Tokens } from './auth.types';
+import { appConfig, type TAppConfig } from '../config/app.config';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly config: TJwtConfig,
+    @Inject(appConfig.KEY)
+    private readonly appConfig: TAppConfig,
   ) {}
 
   async register(
@@ -30,14 +33,20 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
-    const passwordHash = await hash(registerDto.password, 10);
+    const passwordHash = await hash(
+      registerDto.password,
+      this.appConfig.hashSalt,
+    );
     const user = await this.usersService.create({
       ...registerDto,
       password: passwordHash,
     });
 
     const tokens = await this.generateTokens(user);
-    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
     return { user, tokens };
   }
@@ -53,7 +62,10 @@ export class AuthService {
       throw new UnauthorizedException('Неверный email или пароль');
     }
     const tokens = await this.generateTokens(user);
-    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
 
     return { user, tokens };
@@ -88,7 +100,10 @@ export class AuthService {
       throw new UnauthorizedException('Доступ запрещен');
     }
     const tokens = await this.generateTokens(user);
-    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
     return { user, tokens };
   }
