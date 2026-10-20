@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 import { jwtConfig, type TJwtConfig } from '../config/jwt.config';
+import { appConfig, type TAppConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -20,6 +21,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly config: TJwtConfig,
+    @Inject(appConfig.KEY)
+    private readonly appConfig: TAppConfig,
   ) {}
 
   async register(
@@ -29,14 +32,20 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException('Пользователь с таким email уже существует');
     }
-    const passwordHash = await hash(registerDto.password, 10);
+    const passwordHash = await hash(
+      registerDto.password,
+      this.appConfig.hashSalt,
+    );
     const user = await this.usersService.create({
       ...registerDto,
       password: passwordHash,
     });
 
     const tokens = await this.generateTokens(user);
-    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
     return { user, tokens };
   }
@@ -52,7 +61,10 @@ export class AuthService {
       throw new UnauthorizedException('Неверный email или пароль');
     }
     const tokens = await this.generateTokens(user);
-    const refreshTokenHash = await hash(tokens.refreshToken, 10);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
 
     return { user, tokens };
