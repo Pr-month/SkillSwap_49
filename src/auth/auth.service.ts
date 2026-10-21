@@ -12,7 +12,9 @@ import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { type JwtPayload, type Tokens } from './auth.types';
+import { appConfig, type TAppConfig } from '../config/app.config';
 
 @Injectable()
 export class AuthService {
@@ -67,6 +69,43 @@ export class AuthService {
     );
     await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
 
+    return { user, tokens };
+  }
+
+  async refreshTokens(
+    refreshTokenDto: RefreshTokenDto,
+  ): Promise<{ user: User; tokens: Tokens }> {
+    if (!this.config.refreshTokenSecret) {
+      throw new Error('JWT_REFRESH_SECRET не обнаружен');
+    }
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshTokenDto.refreshToken,
+        {
+          secret: this.config.refreshTokenSecret,
+        },
+      );
+    } catch {
+      throw new UnauthorizedException('Невалидный refresh token');
+    }
+    const user = await this.usersService.findById(payload.sub);
+    if (!user || !user.refreshToken) {
+      throw new UnauthorizedException('Доступ запрещен');
+    }
+    const isRefreshTokenValid = await compare(
+      refreshTokenDto.refreshToken,
+      user.refreshToken,
+    );
+    if (!isRefreshTokenValid) {
+      throw new UnauthorizedException('Доступ запрещен');
+    }
+    const tokens = await this.generateTokens(user);
+    const refreshTokenHash = await hash(
+      tokens.refreshToken,
+      this.appConfig.hashSalt,
+    );
+    await this.usersService.updateRefreshToken(user.id, refreshTokenHash);
     return { user, tokens };
   }
 
