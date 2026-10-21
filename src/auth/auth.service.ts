@@ -1,8 +1,8 @@
 import {
   Injectable,
-  ConflictException,
   Inject,
   UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
@@ -15,6 +15,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { type JwtPayload, type Tokens } from './auth.types';
 import { appConfig, type TAppConfig } from '../config/app.config';
+import { QueryFailedError } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -30,19 +31,28 @@ export class AuthService {
   async register(
     registerDto: RegisterDto,
   ): Promise<{ user: User; tokens: Tokens }> {
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new ConflictException('Пользователь с таким email уже существует');
-    }
     const passwordHash = await hash(
       registerDto.password,
       this.appConfig.hashSalt,
     );
-    const user = await this.usersService.create({
-      ...registerDto,
-      password: passwordHash,
-    });
+    let user: User;
+    try {
+      user = await this.usersService.create({
+        ...registerDto,
+        password: passwordHash,
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string }).code === '23505'
+      ) {
+        throw new ConflictException(
+          'Email уже используется. Пожалуйста, используйте другой email.',
+        );
+      }
 
+      throw error;
+    }
     const tokens = await this.generateTokens(user);
     const refreshTokenHash = await hash(
       tokens.refreshToken,
