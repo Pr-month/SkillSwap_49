@@ -11,6 +11,7 @@ import { databaseConfig } from './config/database.config';
 import { type DataSourceOptions } from 'typeorm';
 import { SkillsModule } from './skills/skills.module';
 import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CategoriesModule } from './categories/categories.module';
     AuthModule,
     SkillsModule,
     CategoriesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
