@@ -7,11 +7,11 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { UseGuards } from '@nestjs/common';
 import { Roles } from '../common/decorators/role.decorator';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -47,6 +47,8 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @UseGuards(AccessTokenGuard, RolesGuard)
+  @Roles([UserRole.ADMIN])
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);
   }
