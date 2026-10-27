@@ -1,23 +1,88 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { Skill } from './entities/skill.entity';
+import { Category } from '../categories/entities/category.entity';
 
 @Injectable()
 export class SkillsService {
+  constructor(
+    @InjectRepository(Skill)
+    private readonly skillsRepository: Repository<Skill>,
+
+    @InjectRepository(Category)
+    private readonly categoriesRepository: Repository<Category>,
+  ) {}
+
   create(createSkillDto: CreateSkillDto) {
     return 'This action adds a new skill';
   }
 
   findAll() {
-    return `This action returns all skills`;
+    return 'This action returns all skills';
   }
 
   findOne(id: number) {
     return `This action returns a #${id} skill`;
   }
 
-  update(id: number, updateSkillDto: UpdateSkillDto) {
-    return `This action updates a #${id} skill`;
+  async update(
+    id: number,
+    updateSkillDto: UpdateSkillDto,
+    ownerId: number,
+  ): Promise<Skill> {
+    if (!Number.isInteger(id) || id < 1) {
+      throw new BadRequestException('Некорректный ID навыка');
+    }
+
+    const skill = await this.skillsRepository.findOne({
+      where: { id },
+      relations: { owner: true },
+    });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (skill.owner.id !== ownerId) {
+      throw new ForbiddenException(
+        'Вы можете обновлять только собственные навыки',
+      );
+    }
+
+    if (updateSkillDto.title !== undefined) {
+      skill.title = updateSkillDto.title;
+    }
+
+    if (updateSkillDto.description !== undefined) {
+      skill.description = updateSkillDto.description;
+    }
+
+    if (updateSkillDto.images !== undefined) {
+      skill.images = updateSkillDto.images;
+    }
+
+    if (updateSkillDto.categoryId !== undefined) {
+      const category = await this.categoriesRepository.findOneBy({
+        id: updateSkillDto.categoryId,
+      });
+
+      if (!category) {
+        throw new NotFoundException('Категория не найдена');
+      }
+
+      skill.category = category;
+    }
+
+    return this.skillsRepository.save(skill);
   }
 
   remove(id: number) {

@@ -10,6 +10,10 @@ import {
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { UseGuards } from '@nestjs/common';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { type JwtPayload } from '../auth/auth.types';
 
 @Controller('skills')
 export class SkillsController {
@@ -31,8 +35,13 @@ export class SkillsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSkillDto: UpdateSkillDto) {
-    return this.skillsService.update(+id, updateSkillDto);
+  @UseGuards(AccessTokenGuard)
+  update(
+    @Param('id') id: string,
+    @Body() updateSkillDto: UpdateSkillDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.skillsService.update(Number(id), updateSkillDto, user.sub);
   }
 
   @Delete(':id')
