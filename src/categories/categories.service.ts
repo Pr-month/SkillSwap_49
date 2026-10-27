@@ -16,8 +16,40 @@ export class CategoriesService {
     private readonly categoriesRepository: Repository<Category>,
   ) {}
 
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+    const name = createCategoryDto.name?.trim();
+
+    if (!name || name.length < 3 || name.length > 255) {
+      throw new BadRequestException(
+        'Название категории должно содержать от 3 до 255 символов',
+      );
+    }
+
+    let parent: Category | null = null;
+
+    if (createCategoryDto.parentId != null) {
+      parent = await this.categoriesRepository.findOne({
+        where: { id: createCategoryDto.parentId },
+        relations: { parent: true },
+      });
+
+      if (!parent) {
+        throw new NotFoundException('Родительская категория не найдена');
+      }
+
+      if (parent.parent !== null) {
+        throw new BadRequestException(
+          'Подкатегория не может быть родительской категорией',
+        );
+      }
+    }
+
+    const category = this.categoriesRepository.create({
+      name,
+      parent,
+    });
+
+    return this.categoriesRepository.save(category);
   }
 
   findAll(): Promise<Category[]> {
