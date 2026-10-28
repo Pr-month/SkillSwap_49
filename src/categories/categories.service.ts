@@ -4,10 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
+import { Skill } from '../skills/entities/skill.entity';
 
 @Injectable()
 export class CategoriesService {
@@ -120,7 +121,73 @@ export class CategoriesService {
     return this.categoriesRepository.save(category);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number): Promise<{
+    message: string;
+    deletedCategoryIds: number[];
+    updatedSkillIds: number[];
+  }> {
+    return this.categoriesRepository.manager.transaction(async (manager) => {
+      const categoriesRepository = manager.getRepository(Category);
+      const skillsRepository = manager.getRepository(Skill);
+
+      const category = await categoriesRepository.findOneBy({ id });
+      if (!category) {
+        throw new NotFoundException('Категория не найдена');
+      }
+      const children = await categoriesRepository.find({
+        where: {
+          parent: {
+            id,
+          },
+        },
+      });
+
+      const childIds = children.map((child) => child.id);
+      const deletedCategoryIds = [category.id, ...childIds];
+      const linkedSkills = await skillsRepository.find({
+        where: {
+          category: {
+            id: In(deletedCategoryIds),
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const updatedSkillIds = linkedSkills.map((skill) => skill.id);
+      if (updatedSkillIds.length > 0) {
+        await skillsRepository.update(
+          {
+            id: In(updatedSkillIds),
+          },
+          {
+            category: null,
+          },
+        );
+      }
+
+      await manager
+        .createQueryBuilder()
+        .delete()
+        .from('user_want_to_learn')
+        .where('"categoryId" IN (:...categoryIds)', {
+          categoryIds: deletedCategoryIds,
+        })
+        .execute();
+
+      if (childIds.length > 0) {
+        await categoriesRepository.delete(childIds);
+      }
+
+      await categoriesRepository.delete(category.id);
+
+      return {
+        message:
+          'Категория и её подкатегории удалены, связанные навыки сохранены без категории',
+        deletedCategoryIds,
+        updatedSkillIds,
+      };
+    });
   }
 }

@@ -24,7 +24,7 @@ export class Skill {
   owner!: User;
 
   @ManyToOne(() => Category, (category) => category.skills, {
-    nullable: false,
+    nullable: true,
   })
-  category!: Category;
+  category!: Category | null;
 }
