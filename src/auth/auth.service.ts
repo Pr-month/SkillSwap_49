@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 import { jwtConfig, type TJwtConfig } from '../config/jwt.config';
+import { appConfig, type TAppConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
