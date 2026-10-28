@@ -22,8 +22,12 @@ export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
-  create(@Body() createSkillDto: CreateSkillDto) {
-    return this.skillsService.create(createSkillDto);
+  @UseGuards(AccessTokenGuard)
+  create(
+    @Body() createSkillDto: CreateSkillDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.skillsService.create(createSkillDto, user.sub);
   }
 
   @Get()
