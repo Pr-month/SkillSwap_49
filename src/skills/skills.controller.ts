@@ -6,11 +6,13 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
-import { UseGuards } from '@nestjs/common';
+
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { type JwtPayload } from '../auth/auth.types';
@@ -30,22 +32,26 @@ export class SkillsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.skillsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.skillsService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(AccessTokenGuard)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateSkillDto: UpdateSkillDto,
     @CurrentUser() user: JwtPayload,
   ) {
-    return this.skillsService.update(Number(id), updateSkillDto, user.sub);
+    return this.skillsService.update(id, updateSkillDto, user.sub);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.skillsService.remove(+id);
+  @UseGuards(AccessTokenGuard)
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.skillsService.remove(id, user.sub);
   }
 }
