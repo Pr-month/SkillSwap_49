@@ -12,9 +12,10 @@ import {
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import type { JwtPayload } from '../auth/auth.types';
+import { type JwtPayload } from '../auth/auth.types';
 
 @Controller('skills')
 export class SkillsController {
@@ -40,11 +41,13 @@ export class SkillsController {
   }
 
   @Patch(':id')
+  @UseGuards(AccessTokenGuard)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateSkillDto: UpdateSkillDto,
+    @CurrentUser() user: JwtPayload,
   ) {
-    return this.skillsService.update(id, updateSkillDto);
+    return this.skillsService.update(id, updateSkillDto, user.sub);
   }
 
   @Delete(':id')
