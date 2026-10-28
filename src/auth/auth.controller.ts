@@ -6,6 +6,8 @@ import { LoginDto } from './dto/login.dto';
 import { AccessTokenGuard } from './guards/access-token.guard';
 import { type JwtPayload } from './auth.types';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { HttpCode } from '@nestjs/common';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +21,12 @@ export class AuthController {
   @Post('login')
   Login(@Body() login: LoginDto) {
     return this.authService.login(login);
+  }
+
+  @HttpCode(200)
+  @Post('refresh')
+  refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshTokens(refreshTokenDto);
   }
 
   @UseGuards(AccessTokenGuard)

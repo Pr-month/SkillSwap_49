@@ -9,6 +9,9 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './config/database.config';
 import { type DataSourceOptions } from 'typeorm';
+import { SkillsModule } from './skills/skills.module';
+import { CategoriesModule } from './categories/categories.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -25,6 +28,9 @@ import { type DataSourceOptions } from 'typeorm';
     }),
     UsersModule,
     AuthModule,
+    SkillsModule,
+    CategoriesModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
