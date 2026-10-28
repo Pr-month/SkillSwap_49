@@ -4,7 +4,9 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
 
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { AllExceptionFilter } from './common/filters/all-exception.filter'; // ← NEW
 import { appConfig, type TAppConfig } from './config/app.config';
 
 async function bootstrap() {
@@ -12,6 +14,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  app.useGlobalFilters(new AllExceptionFilter()); // ← NEW
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useGlobalPipes(

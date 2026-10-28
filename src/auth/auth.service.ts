@@ -13,7 +13,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { type JwtPayload, type Tokens } from './auth.types';
-import { appConfig, type TAppConfig } from '../config/app.config';
 import { QueryFailedError } from 'typeorm';
 
 @Injectable()
