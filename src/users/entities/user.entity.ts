@@ -10,6 +10,7 @@ import { UserGender, UserRole } from '../users.enums';
 import { Exclude } from 'class-transformer';
 import { Skill } from '../../skills/entities/skill.entity';
 import { Category } from '../../categories/entities/category.entity';
+import { Request as SkillRequest } from '../../requests/entities/request.entity';
 
 @Entity('users')
 export class User {
@@ -43,6 +44,12 @@ export class User {
 
   @OneToMany(() => Skill, (skill) => skill.owner)
   skills!: Skill[];
+
+  @OneToMany(() => SkillRequest, (request) => request.sender)
+  requestsSent!: SkillRequest[];
+
+  @OneToMany(() => SkillRequest, (request) => request.recipient)
+  requestsReceived!: SkillRequest[];
 
   @ManyToMany(() => Category, (category) => category.interestedUsers)
   @JoinTable({

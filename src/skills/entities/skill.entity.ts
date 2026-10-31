@@ -1,6 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
+import { Request as SkillRequest } from '../../requests/entities/request.entity';
 
 @Entity('skills')
 export class Skill {
@@ -27,4 +34,7 @@ export class Skill {
     nullable: true,
   })
   category!: Category | null;
+
+  @OneToMany(() => SkillRequest, (request) => request.skill)
+  requests!: SkillRequest[];
 }
