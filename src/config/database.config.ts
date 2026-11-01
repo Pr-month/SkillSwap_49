@@ -19,4 +19,5 @@ export const databaseConfig = registerAs(
 export const AppDataSource = new DataSource({
   ...databaseConfig(),
   entities: ['src/**/*.entity.ts'],
+  logging: false,
 });

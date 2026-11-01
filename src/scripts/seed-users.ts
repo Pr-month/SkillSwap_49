@@ -56,7 +56,6 @@ async function seedUsersData(): Promise<void> {
   }
 }
 
-seedUsersData().catch((error: unknown) => {
+seedUsersData().catch((error) => {
   console.error('Ошибка сидирования пользователей:', error);
-  process.exitCode = 1;
 });
