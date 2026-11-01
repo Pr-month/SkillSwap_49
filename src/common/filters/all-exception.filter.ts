@@ -37,7 +37,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
     };
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= (HttpStatus.INTERNAL_SERVER_ERROR as number)) {
       this.logger.error(
         `${request.method} ${request.url} -> ${status}`,
         exception instanceof Error ? exception.stack : String(exception),
@@ -114,7 +114,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       }
 
       // 413
-      if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
+      if (status === (HttpStatus.PAYLOAD_TOO_LARGE as number)) {
         return {
           status,
           message: message || 'Файл слишком большой',
