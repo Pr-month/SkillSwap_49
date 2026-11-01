@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config';
-import { type DataSourceOptions } from 'typeorm';
+import { DataSource, type DataSourceOptions } from 'typeorm';
 
 export const databaseConfig = registerAs(
   'DB_CONFIG',
@@ -15,3 +15,8 @@ export const databaseConfig = registerAs(
     migrations: ['dist/migrations/*.js'],
   }),
 );
+
+export const AppDataSource = new DataSource({
+  ...databaseConfig(),
+  entities: ['src/**/*.entity.ts'],
+});
