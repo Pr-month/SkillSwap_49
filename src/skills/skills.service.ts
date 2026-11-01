@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -140,5 +141,55 @@ export class SkillsService {
     }
 
     await this.skillsRepository.remove(skill);
+  }
+
+  async addToFavorites(skillId: number, userId: number): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: { favoriteSkills: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const skill = await this.skillsRepository.findOneBy({ id: skillId });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (user.favoriteSkills.some((favorite) => favorite.id === skillId)) {
+      throw new ConflictException('Навык уже добавлен в избранное');
+    }
+
+    user.favoriteSkills.push(skill);
+    await this.usersRepository.save(user);
+  }
+
+  async removeFromFavorites(skillId: number, userId: number): Promise<void> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: { favoriteSkills: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+
+    const skill = await this.skillsRepository.findOneBy({ id: skillId });
+
+    if (!skill) {
+      throw new NotFoundException('Навык не найден');
+    }
+
+    if (!user.favoriteSkills.some((favorite) => favorite.id === skillId)) {
+      throw new NotFoundException('Навык не найден в избранном');
+    }
+
+    user.favoriteSkills = user.favoriteSkills.filter(
+      (favorite) => favorite.id !== skillId,
+    );
+    await this.usersRepository.save(user);
   }
 }

@@ -58,4 +58,22 @@ export class SkillsController {
   ) {
     await this.skillsService.remove(id, user.sub);
   }
+
+  @Post(':id/favorite')
+  @UseGuards(AccessTokenGuard)
+  async addToFavorites(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.skillsService.addToFavorites(id, user.sub);
+  }
+
+  @Delete(':id/favorite')
+  @UseGuards(AccessTokenGuard)
+  async removeFromFavorites(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    await this.skillsService.removeFromFavorites(id, user.sub);
+  }
 }
