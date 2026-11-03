@@ -46,8 +46,9 @@ export class RequestsController {
     return this.requestsService.update(+id, updateRequestDto);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestsService.remove(+id);
+  remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.requestsService.remove(+id, user);
   }
 }
