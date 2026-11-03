@@ -81,6 +81,11 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "moduleNameMapper": {
+      "^@nestjs/typeorm$": "<rootDir>/../test/mocks/typeorm.mock.ts",
+      "^@nestjs/passport$": "<rootDir>/../test/mocks/passport.mock.ts",
+      "^@nestjs/mapped-types$": "<rootDir>/../test/mocks/mapped-types.mock.ts"
+    },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
