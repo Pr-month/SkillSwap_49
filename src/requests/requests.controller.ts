@@ -6,10 +6,15 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { AccessTokenGuard } from '../auth/guards/access-token.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { type JwtPayload } from '../auth/auth.types';
 
 @Controller('requests')
 export class RequestsController {
@@ -25,9 +30,15 @@ export class RequestsController {
     return this.requestsService.findAll();
   }
 
+  @Get('incoming')
+  @UseGuards(AccessTokenGuard)
+  findIncoming(@CurrentUser() user: JwtPayload) {
+    return this.requestsService.findIncoming(user.sub);
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requestsService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.requestsService.findOne(id);
   }
 
   @Patch(':id')
