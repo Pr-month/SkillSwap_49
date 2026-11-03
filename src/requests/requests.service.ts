@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { UpdateRequestDto } from './dto/update-request.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { Request } from './entities/request.entity';
-import { RequestStatus } from './requests.enums';
+import { RequestStatus } from './request.enums';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
 
@@ -78,5 +79,34 @@ export class RequestsService {
       },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  findAll() {
+    return `This action returns all requests`;
+  }
+
+  async findIncoming(userId: number): Promise<Request[]> {
+    return this.requestsRepository.find({
+      where: { receiver: { id: userId } },
+      relations: {
+        sender: true,
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} request`;
+  }
+
+  update(id: number, updateRequestDto: UpdateRequestDto) {
+    return `This action updates a #${id} request`;
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} request`;
   }
 }

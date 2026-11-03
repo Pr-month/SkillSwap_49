@@ -8,21 +8,27 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Skill } from '../../skills/entities/skill.entity';
-import { RequestStatus } from '../requests.enums';
+import { RequestStatus } from '../request.enums';
 
 @Entity('requests')
 export class Request {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'senderId' })
   sender!: User;
 
-  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => User, {
+    nullable: false,
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'receiverId' })
   receiver!: User;
 
@@ -33,14 +39,23 @@ export class Request {
   })
   status!: RequestStatus;
 
-  @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Skill, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'offeredSkillId' })
   offeredSkill!: Skill;
 
-  @ManyToOne(() => Skill, { nullable: false, onDelete: 'CASCADE' })
+  @ManyToOne(() => Skill, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'requestedSkillId' })
   requestedSkill!: Skill;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
   isRead!: boolean;
 }

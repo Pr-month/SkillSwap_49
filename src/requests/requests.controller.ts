@@ -1,17 +1,27 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { type JwtPayload } from '../auth/auth.types';
 
 @Controller('requests')
-@UseGuards(AccessTokenGuard)
 export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
+  @UseGuards(AccessTokenGuard)
   create(
     @Body() createRequestDto: CreateRequestDto,
     @CurrentUser() user: JwtPayload,
@@ -19,8 +29,35 @@ export class RequestsController {
     return this.requestsService.create(createRequestDto, user.sub);
   }
 
+  @Get()
+  findAll() {
+    return this.requestsService.findAll();
+  }
+
+  @Get('incoming')
+  @UseGuards(AccessTokenGuard)
+  findIncoming(@CurrentUser() user: JwtPayload) {
+    return this.requestsService.findIncoming(user.sub);
+  }
+
   @Get('outgoing')
+  @UseGuards(AccessTokenGuard)
   findOutgoing(@CurrentUser() user: JwtPayload) {
     return this.requestsService.findOutgoing(user.sub);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.requestsService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
+    return this.requestsService.update(+id, updateRequestDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.requestsService.remove(+id);
   }
 }

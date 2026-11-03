@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 
 import { CreateRequestDto } from './dto/create-request.dto';
 import { Request } from './entities/request.entity';
-import { RequestStatus } from './requests.enums';
+import { RequestStatus } from './request.enums';
 import { RequestsService } from './requests.service';
 import { Skill } from '../skills/entities/skill.entity';
 import { User } from '../users/entities/user.entity';
