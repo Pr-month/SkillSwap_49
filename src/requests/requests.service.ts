@@ -3,13 +3,14 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Request } from './entities/request.entity';
 import { UserRole } from '../users/users.enums';
 import type { JwtPayload } from '../auth/auth.types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { Request } from './entities/request.entity';
 
 @Injectable()
 export class RequestsService {
@@ -24,6 +25,19 @@ export class RequestsService {
 
   findAll() {
     return `This action returns all requests`;
+  }
+
+  async findIncoming(userId: number): Promise<Request[]> {
+    return this.requestsRepository.find({
+      where: { receiver: { id: userId } },
+      relations: {
+        sender: true,
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   findOne(id: number) {
