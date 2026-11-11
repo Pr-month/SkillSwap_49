@@ -47,7 +47,7 @@ async function seedUsersData(): Promise<void> {
     }
 
     console.log(
-      `Сидинг завершён. Создано: ${createdCount}, пропущено: ${skippedCount}`,
+      `Сидинг пользователей завершён. Создано: ${createdCount}, пропущено: ${skippedCount}`,
     );
   } finally {
     if (AppDataSource.isInitialized) {

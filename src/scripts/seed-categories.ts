@@ -40,7 +40,7 @@ async function seedCategories(): Promise<void> {
     }
 
     console.log(
-      `Сидинг завершён. Создано категорий: ${createdParentsCount}, ` +
+      `Сидинг категорий завершён. Создано категорий: ${createdParentsCount}, ` +
         `подкатегорий: ${createdChildrenCount}`,
     );
   } finally {
