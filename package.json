@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "seed:test:users": "ts-node -r tsconfig-paths/register src/scripts/seed-users.ts",
     "seed:categories": "ts-node -r tsconfig-paths/register src/scripts/seed-categories.ts",
     "seed:admin": "ts-node -r tsconfig-paths/register src/scripts/seed-admin.ts",
@@ -46,6 +46,8 @@
     "typeorm": "^1.1.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.13",
+    "@babel/plugin-transform-modules-commonjs": "^7.29.7",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -60,6 +62,8 @@
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
+    "babel-jest": "^29.7.0",
+    "dotenv": "^18.0.10",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
