@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 
@@ -21,10 +22,10 @@ export class Skill {
   images!: string[];
 
   @ManyToOne(() => User, (user) => user.skills, { nullable: false })
-  owner!: User;
+  owner!: Relation<User>;
 
   @ManyToOne(() => Category, (category) => category.skills, {
     nullable: true,
   })
-  category!: Category | null;
+  category!: Relation<Category> | null;
 }
