@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -51,10 +56,18 @@ export class RequestsService {
       throw new NotFoundException('Запрашиваемый навык не найден');
     }
 
+    if (offeredSkill.owner?.id !== senderId) {
+      throw new ForbiddenException('Предлагать можно только свой навык');
+    }
+
     const receiver = requestedSkill.owner;
 
     if (!receiver) {
       throw new NotFoundException('Владелец запрашиваемого навыка не найден');
+    }
+
+    if (receiver.id === senderId) {
+      throw new BadRequestException('Нельзя отправить заявку самому себе');
     }
 
     const request = this.requestsRepository.create({

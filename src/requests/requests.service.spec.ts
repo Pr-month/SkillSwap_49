@@ -1,4 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
@@ -102,6 +106,26 @@ describe('RequestsService', () => {
         .mockResolvedValueOnce(null);
 
       await expect(service.create(dto, 5)).rejects.toThrow(NotFoundException);
+    });
+
+    it('rejects an offered skill owned by another user', async () => {
+      usersRepository.findOneBy.mockResolvedValue({ id: 5 });
+      skillsRepository.findOne
+        .mockResolvedValueOnce({ id: 1, owner: { id: 8 } })
+        .mockResolvedValueOnce({ id: 2, owner: { id: 9 } });
+
+      await expect(service.create(dto, 5)).rejects.toThrow(ForbiddenException);
+      expect(requestsRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('rejects a request sent to the sender\'s own skill', async () => {
+      usersRepository.findOneBy.mockResolvedValue({ id: 5 });
+      skillsRepository.findOne
+        .mockResolvedValueOnce({ id: 1, owner: { id: 5 } })
+        .mockResolvedValueOnce({ id: 2, owner: { id: 5 } });
+
+      await expect(service.create(dto, 5)).rejects.toThrow(BadRequestException);
+      expect(requestsRepository.save).not.toHaveBeenCalled();
     });
   });
 
