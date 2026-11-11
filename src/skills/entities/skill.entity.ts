@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+} from 'typeorm';
 import type { Relation } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
@@ -28,4 +34,7 @@ export class Skill {
     nullable: true,
   })
   category!: Relation<Category> | null;
+
+  @ManyToMany(() => User, (user) => user.favoriteSkills)
+  favoritedBy!: Relation<User[]>;
 }

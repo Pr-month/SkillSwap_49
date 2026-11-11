@@ -1,6 +1,7 @@
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
 
@@ -31,6 +32,17 @@ async function bootstrap() {
   const config = app.get<TAppConfig>(appConfig.KEY);
 
   app.useStaticAssets(join(process.cwd(), 'public'));
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SkillSwap API')
+    .setDescription('Документация API сервиса SkillSwap')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('api', app, swaggerDocument);
 
   await app.listen(config.port);
 }
