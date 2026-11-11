@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 import { DataSource } from 'typeorm';
+import { resetTestDb } from './helpers/reset-test-db';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -16,6 +17,7 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    await resetTestDb(app.get(DataSource));
   });
 
   afterEach(async () => {
