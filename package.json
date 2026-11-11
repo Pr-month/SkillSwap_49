@@ -13,11 +13,13 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "jest --config jest.config.ts",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed:test:users": "ts-node -r tsconfig-paths/register src/scripts/seed-users.ts",
+    "seed:categories": "ts-node -r tsconfig-paths/register src/scripts/seed-categories.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -27,6 +29,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^12.0.0",
     "@nestjs/platform-express": "^11.2.7",
+    "@nestjs/swagger": "^11.4.8",
     "@nestjs/typeorm": "^12.0.2",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
@@ -69,27 +72,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "moduleNameMapper": {
-      "^@nestjs/typeorm$": "<rootDir>/../test/mocks/typeorm.mock.ts",
-      "^@nestjs/passport$": "<rootDir>/../test/mocks/passport.mock.ts",
-      "^@nestjs/mapped-types$": "<rootDir>/../test/mocks/mapped-types.mock.ts"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
