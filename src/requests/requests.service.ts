@@ -20,6 +20,7 @@ export class RequestsService {
   ) {}
 
   create(createRequestDto: CreateRequestDto) {
+    void createRequestDto;
     return 'This action adds a new request';
   }
 
@@ -45,6 +46,7 @@ export class RequestsService {
   }
 
   update(id: number, updateRequestDto: UpdateRequestDto) {
+    void updateRequestDto;
     return `This action updates a #${id} request`;
   }
 

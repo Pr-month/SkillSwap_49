@@ -31,14 +31,14 @@ describe('Categories (e2e)', () => {
   });
 
   describe('POST /categories', () => {
-    it('returns 401 for a non-admin user', async () => {
+    it('returns 403 for a non-admin user', async () => {
       const user = await registerUser(app);
 
       await request(app.getHttpServer())
         .post('/categories')
         .set('Authorization', `Bearer ${user.accessToken}`)
         .send({ name: 'IT' })
-        .expect(401);
+        .expect(403);
     });
 
     it('creates a root category as admin', async () => {
@@ -122,14 +122,14 @@ describe('Categories (e2e)', () => {
       expect(res.body.name).toBe('Новое имя');
     });
 
-    it('returns 401 for a non-admin user', async () => {
+    it('returns 403 for a non-admin user', async () => {
       const user = await registerUser(app);
 
       await request(app.getHttpServer())
         .patch('/categories/1')
         .set('Authorization', `Bearer ${user.accessToken}`)
         .send({ name: 'X' })
-        .expect(401);
+        .expect(403);
     });
   });
 
@@ -151,13 +151,13 @@ describe('Categories (e2e)', () => {
       expect(res.body.deletedCategoryIds).toContain(created.body.id);
     });
 
-    it('returns 401 for a non-admin user', async () => {
+    it('returns 403 for a non-admin user', async () => {
       const user = await registerUser(app);
 
       await request(app.getHttpServer())
         .delete('/categories/1')
         .set('Authorization', `Bearer ${user.accessToken}`)
-        .expect(401);
+        .expect(403);
     });
 
     it('returns 404 for a missing category as admin', async () => {

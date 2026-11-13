@@ -59,7 +59,7 @@ describe('Auth (e2e)', () => {
   });
 
   describe('POST /auth/login', () => {
-    beforeEach(async () => {
+    beforeAll(async () => {
       await registerUser(app, { email: 'login@test.com' });
     });
 

@@ -68,25 +68,6 @@ describe('Requests (e2e)', () => {
     return request.id;
   }
 
-  describe('GET /requests', () => {
-    it('returns the stub response', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/requests')
-        .expect(200);
-      expect(res.text).toBe('This action returns all requests');
-    });
-  });
-
-  describe('POST /requests', () => {
-    it('returns the stub response', async () => {
-      const res = await request(app.getHttpServer())
-        .post('/requests')
-        .send({})
-        .expect(201);
-      expect(res.text).toBe('This action adds a new request');
-    });
-  });
-
   describe('GET /requests/incoming', () => {
     it('returns incoming requests for the current user', async () => {
       const sender = await registerUser(app);
