@@ -1,9 +1,20 @@
 import { registerAs } from '@nestjs/config';
 import { DataSource, type DataSourceOptions } from 'typeorm';
 
-export const databaseConfig = registerAs(
-  'DB_CONFIG',
-  (): DataSourceOptions => ({
+export const databaseConfig = registerAs('DB_CONFIG', (): DataSourceOptions => {
+  const url = process.env.DATABASE_URL;
+
+  if (url) {
+    return {
+      type: 'postgres',
+      url,
+      synchronize: process.env.DB_SYNCHRONIZE === 'true',
+      logging: process.env.DB_LOGGING === 'true',
+      migrations: ['dist/migrations/*.js'],
+    };
+  }
+
+  return {
     type: 'postgres',
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT) || 5432,
@@ -13,8 +24,8 @@ export const databaseConfig = registerAs(
     synchronize: process.env.DB_SYNCHRONIZE === 'true',
     logging: process.env.DB_LOGGING === 'true',
     migrations: ['dist/migrations/*.js'],
-  }),
-);
+  };
+});
 
 export const AppDataSource = new DataSource({
   ...databaseConfig(),

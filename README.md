@@ -82,6 +82,45 @@ git push origin dev
 
 ---
 
+## Тестирование
+
+### Unit-тесты
+
+Запускаются без базы данных:
+
+```bash
+npm run test
+```
+
+### E2E-тесты
+
+E2E-тесты поднимают приложение и работают с настоящей базой данных PostgreSQL
+(`synchronize` включён, перед тестами таблицы очищаются через `TRUNCATE`), поэтому
+используйте отдельную тестовую базу, а не рабочую.
+
+Перед запуском задайте переменные окружения:
+
+```bash
+# либо строка подключения (как в CI)
+export DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
+# либо отдельные параметры
+export DB_HOST=localhost
+export DB_PORT=5432
+export DB_USERNAME=postgres
+export DB_PASSWORD=postgres
+export DB_DATABASE=skillswap_test
+```
+
+Затем выполните:
+
+```bash
+npm run test:e2e
+```
+
+Файлы-фикстуры для тестов загрузки файлов лежат в `test/fixtures`.
+
+---
+
 ## Обновление локальных веток
 
 После мержей студенты обновляют свои ветки при необходимости:
