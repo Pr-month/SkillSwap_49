@@ -5,15 +5,25 @@ import cookieParser from 'cookie-parser';
 import { join } from 'path';
 
 import { AppModule } from './app.module';
-import { AllExceptionFilter } from './common/filters/all-exception.filter'; // ← NEW
+import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import { appConfig, type TAppConfig } from './config/app.config';
+import { validateEnv } from './config/env.validation';
 
 async function bootstrap() {
+  // Ранняя проверка окружения: приложение не стартует с невалидными настройками.
+  const env = validateEnv();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(cookieParser());
 
-  app.useGlobalFilters(new AllExceptionFilter()); // ← NEW
+  // За прокси используем реальный IP клиента (для корректного rate limiting).
+  if (env.trustProxy) {
+    const express = app.getHttpAdapter().getInstance();
+    express.set('trust proxy', true);
+  }
+
+  app.useGlobalFilters(new AllExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useGlobalPipes(

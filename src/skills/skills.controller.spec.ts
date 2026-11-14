@@ -14,6 +14,8 @@ describe('SkillsController', () => {
     findOne: jest.Mock;
     update: jest.Mock;
     remove: jest.Mock;
+    addFavorite: jest.Mock;
+    removeFavorite: jest.Mock;
   };
 
   const currentUser: JwtPayload = {
@@ -29,6 +31,8 @@ describe('SkillsController', () => {
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
+      addFavorite: jest.fn(),
+      removeFavorite: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -92,6 +96,28 @@ describe('SkillsController', () => {
       await controller.remove(3, currentUser);
 
       expect(service.remove).toHaveBeenCalledWith(3, 10);
+    });
+  });
+
+  describe('addFavorite', () => {
+    it('delegates to the service with the skill id and owner id', () => {
+      service.addFavorite.mockReturnValue({ message: 'ok' });
+
+      expect(controller.addFavorite(3, currentUser)).toEqual({
+        message: 'ok',
+      });
+      expect(service.addFavorite).toHaveBeenCalledWith(3, 10);
+    });
+  });
+
+  describe('removeFavorite', () => {
+    it('delegates to the service with the skill id and owner id', () => {
+      service.removeFavorite.mockReturnValue({ message: 'ok' });
+
+      expect(controller.removeFavorite(3, currentUser)).toEqual({
+        message: 'ok',
+      });
+      expect(service.removeFavorite).toHaveBeenCalledWith(3, 10);
     });
   });
 });

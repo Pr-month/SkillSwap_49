@@ -7,6 +7,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { UserRole } from '../users/users.enums';
 import type { JwtPayload } from './auth.types';
+import { AuthThrottlerGuard } from '../common/guards/auth-throttler.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -28,7 +29,10 @@ describe('AuthController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: service }],
-    }).compile();
+    })
+      .overrideGuard(AuthThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
   });

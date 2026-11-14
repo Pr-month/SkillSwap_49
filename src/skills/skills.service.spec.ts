@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -18,20 +19,30 @@ describe('SkillsService', () => {
     create: jest.Mock;
     save: jest.Mock;
     findOne: jest.Mock;
+    findOneBy: jest.Mock;
     remove: jest.Mock;
   };
   let categoriesRepository: { findOneBy: jest.Mock };
-  let usersRepository: { findOneBy: jest.Mock };
+  let usersRepository: {
+    findOneBy: jest.Mock;
+    findOne: jest.Mock;
+    save: jest.Mock;
+  };
 
   beforeEach(async () => {
     skillsRepository = {
       create: jest.fn(),
       save: jest.fn(),
       findOne: jest.fn(),
+      findOneBy: jest.fn(),
       remove: jest.fn(),
     };
     categoriesRepository = { findOneBy: jest.fn() };
-    usersRepository = { findOneBy: jest.fn() };
+    usersRepository = {
+      findOneBy: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -185,6 +196,74 @@ describe('SkillsService', () => {
       await service.remove(1, 10);
 
       expect(skillsRepository.remove).toHaveBeenCalledWith(skill);
+    });
+  });
+
+  describe('addFavorite', () => {
+    it('adds the skill to the user favorites', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [],
+      });
+      usersRepository.save.mockImplementation(
+        (u: { favoriteSkills: unknown[] }) => Promise.resolve(u),
+      );
+
+      const result = await service.addFavorite(1, 10);
+
+      expect(usersRepository.save).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Навык добавлен в избранное' });
+    });
+
+    it('throws NotFoundException when the skill does not exist', async () => {
+      skillsRepository.findOneBy.mockResolvedValue(null);
+
+      await expect(service.addFavorite(1, 10)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ConflictException when the skill is already a favorite', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [{ id: 1 }],
+      });
+
+      await expect(service.addFavorite(1, 10)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+  });
+
+  describe('removeFavorite', () => {
+    it('removes the skill from the user favorites', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [{ id: 1 }],
+      });
+      usersRepository.save.mockImplementation(
+        (u: { favoriteSkills: unknown[] }) => Promise.resolve(u),
+      );
+
+      const result = await service.removeFavorite(1, 10);
+
+      expect(usersRepository.save).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Навык удалён из избранного' });
+    });
+
+    it('throws NotFoundException when the skill is not a favorite', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [],
+      });
+
+      await expect(service.removeFavorite(1, 10)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

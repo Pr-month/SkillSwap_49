@@ -4,6 +4,7 @@ import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
 import { UserRole } from '../users/users.enums';
+import { RequestStatus } from './request.enums';
 import type { JwtPayload } from '../auth/auth.types';
 
 describe('RequestsController', () => {
@@ -12,6 +13,7 @@ describe('RequestsController', () => {
     create: jest.Mock;
     findAll: jest.Mock;
     findIncoming: jest.Mock;
+    findOutgoing: jest.Mock;
     findOne: jest.Mock;
     update: jest.Mock;
     remove: jest.Mock;
@@ -28,6 +30,7 @@ describe('RequestsController', () => {
       create: jest.fn(),
       findAll: jest.fn(),
       findIncoming: jest.fn(),
+      findOutgoing: jest.fn(),
       findOne: jest.fn(),
       update: jest.fn(),
       remove: jest.fn(),
@@ -46,12 +49,15 @@ describe('RequestsController', () => {
   });
 
   describe('create', () => {
-    it('delegates to the service', () => {
-      const dto: CreateRequestDto = {};
+    it('delegates to the service with the sender id', () => {
+      const dto: CreateRequestDto = {
+        offeredSkillId: 1,
+        requestedSkillId: 2,
+      };
       service.create.mockReturnValue('created');
 
-      expect(controller.create(dto)).toBe('created');
-      expect(service.create).toHaveBeenCalledWith(dto);
+      expect(controller.create(dto, currentUser)).toBe('created');
+      expect(service.create).toHaveBeenCalledWith(dto, 10);
     });
   });
 
@@ -73,6 +79,15 @@ describe('RequestsController', () => {
     });
   });
 
+  describe('findOutgoing', () => {
+    it('delegates to the service with the current user id', () => {
+      service.findOutgoing.mockReturnValue([]);
+
+      expect(controller.findOutgoing(currentUser)).toEqual([]);
+      expect(service.findOutgoing).toHaveBeenCalledWith(10);
+    });
+  });
+
   describe('findOne', () => {
     it('delegates to the service', () => {
       service.findOne.mockReturnValue('request');
@@ -83,12 +98,12 @@ describe('RequestsController', () => {
   });
 
   describe('update', () => {
-    it('delegates to the service', () => {
-      const dto: UpdateRequestDto = {};
+    it('delegates to the service with a numeric id and the user', () => {
+      const dto: UpdateRequestDto = { status: RequestStatus.ACCEPT };
       service.update.mockReturnValue('updated');
 
-      expect(controller.update('3', dto)).toBe('updated');
-      expect(service.update).toHaveBeenCalledWith(3, dto);
+      expect(controller.update(3, dto, currentUser)).toBe('updated');
+      expect(service.update).toHaveBeenCalledWith(3, dto, 10);
     });
   });
 

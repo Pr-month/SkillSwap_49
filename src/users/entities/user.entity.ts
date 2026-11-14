@@ -58,6 +58,20 @@ export class User {
   })
   wantToLearn!: Category[];
 
+  @ManyToMany(() => Skill, (skill) => skill.favoritedByUsers)
+  @JoinTable({
+    name: 'skill_favorites',
+    joinColumn: {
+      name: 'userId',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'skillId',
+      referencedColumnName: 'id',
+    },
+  })
+  favoriteSkills!: Skill[];
+
   @Column({
     type: 'enum',
     enum: UserRole,

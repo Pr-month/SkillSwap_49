@@ -121,6 +121,97 @@ npm run test:e2e
 
 ---
 
+## Настройка окружения
+
+Перед запуском приложение проверяет переменные окружения и падает с понятной
+ошибкой, если они невалидны (см. `src/config/env.validation.ts`). Проверяются:
+
+- **JWT-секреты** — обязательны, не должны быть заглушками (`secret`, `changeme`
+  и т.п.). В `production` секреты должны быть разными и длиной не менее 32 символов.
+- **Параметры БД** — порт должен быть числом, в `production` запрещён
+  `DB_SYNCHRONIZE=true` и обязательны параметры подключения (или `DATABASE_URL`).
+- **Порт приложения и `HASH_SALT`** — должны быть корректными числами.
+
+Скопируйте `.env.example` в `.env` и замените значения-заглушки на реальные.
+Пример безопасных настроек описан в комментариях `.env.example`.
+
+---
+
+## Миграции базы данных
+
+Схема БД управляется миграциями TypeORM. При `DB_SYNCHRONIZE=false` (всегда в
+`production`) миграции выполняются автоматически **до старта приложения**
+(`migrationsRun`). В разработке и тестах можно оставить `DB_SYNCHRONIZE=true`.
+
+Команды (используют `src/data-source.ts`, который читает `.env`):
+
+```bash
+# Создать пустую миграцию (написать изменения вручную)
+npm run migration:create -- src/migrations/NameOfMigration
+
+# Сгенерировать миграцию по разнице между сущностями и БД
+npm run migration:generate -- src/migrations/NameOfMigration
+
+# Применить миграции
+npm run migration:run
+
+# Откатить последнюю миграцию
+npm run migration:revert
+
+# Показать статус миграций
+npm run migration:show
+```
+
+### Порядок применения и отката
+
+1. Внесите изменения в сущности (`src/**/entities/*.entity.ts`).
+2. Сгенерируйте миграцию: `npm run migration:generate -- src/migrations/...`.
+3. Проверьте сгенерированный SQL, при необходимости поправьте вручную.
+4. Примените на пустой/локальной БД: `npm run migration:run`.
+5. Откат изменений: `npm run migration:revert` (по одной миграции за вызов).
+
+Первая миграция `src/migrations/1763080000000-InitialSchema.ts` создаёт все
+текущие таблицы (`users`, `categories`, `skills`, `user_want_to_learn`,
+`requests`, `skill_favorites`, `notifications`).
+
+---
+
+## Ограничение частоты запросов (rate limiting)
+
+Все маршруты ограничены через `@nestjs/throttler`, а `auth/register`,
+`auth/login` и `auth/refresh` дополнительно защищены более строгим лимитером
+(`src/common/guards/auth-throttler.guard.ts`). При превышении возвращается
+`429 Too Many Requests`.
+
+Настройки через переменные окружения (см. `.env.example`):
+
+- `THROTTLE_TTL` / `THROTTLE_LIMIT` — общий лимит (по умолчанию 100 запросов / 60 сек).
+- `AUTH_THROTTLE_TTL` / `AUTH_THROTTLE_LIMIT` — строгий лимит для auth (по умолчанию 5 / 60 сек).
+- `TRUST_PROXY=true` — учитывать реальный IP клиента из `X-Forwarded-For`,
+  когда приложение развёрнуто за прокси (nginx и т.п.).
+
+---
+
+## Уведомления в реальном времени (WebSocket)
+
+Уведомления генерируются при создании заявки (получателю) и изменении её
+статуса (отправителю) и доставляются по WebSocket в namespace `/notifications`,
+а также сохраняются в БД (`notifications`).
+
+Подключение клиента:
+
+```js
+const socket = io('/notifications', { auth: { token: accessToken } });
+socket.on('notification', (data) => { /* { id, type, message, isRead, ... } */ });
+```
+
+REST-эндпоинты (требуют авторизации):
+
+- `GET /notifications` — список уведомлений текущего пользователя.
+- `PATCH /notifications/:id/read` — отметить уведомление прочитанным.
+
+---
+
 ## Обновление локальных веток
 
 После мержей студенты обновляют свои ветки при необходимости:

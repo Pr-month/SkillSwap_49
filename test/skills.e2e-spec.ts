@@ -155,4 +155,84 @@ describe('Skills (e2e)', () => {
       expect(res.text).toBe('This action returns all skills');
     });
   });
+
+  describe('favorites', () => {
+    async function createSkill(ownerToken: string): Promise<number> {
+      const categoryId = await createCategory();
+      const res = await request(app.getHttpServer())
+        .post('/skills')
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .send({ title: 'React', description: 'Desc', categoryId })
+        .expect(201);
+
+      return res.body.id as number;
+    }
+
+    it('adds a skill to favorites', async () => {
+      const owner = await registerUser(app);
+      const user = await registerUser(app);
+      const skillId = await createSkill(owner.accessToken);
+
+      const res = await request(app.getHttpServer())
+        .post(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(200);
+
+      expect(res.body).toEqual({ message: 'Навык добавлен в избранное' });
+    });
+
+    it('returns 409 when the skill is already a favorite', async () => {
+      const owner = await registerUser(app);
+      const user = await registerUser(app);
+      const skillId = await createSkill(owner.accessToken);
+
+      await request(app.getHttpServer())
+        .post(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .post(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(409);
+    });
+
+    it('returns 404 when adding a missing skill to favorites', async () => {
+      const user = await registerUser(app);
+
+      await request(app.getHttpServer())
+        .post('/skills/99999/favorite')
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(404);
+    });
+
+    it('removes a skill from favorites', async () => {
+      const owner = await registerUser(app);
+      const user = await registerUser(app);
+      const skillId = await createSkill(owner.accessToken);
+
+      await request(app.getHttpServer())
+        .post(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(200);
+
+      const res = await request(app.getHttpServer())
+        .delete(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(200);
+
+      expect(res.body).toEqual({ message: 'Навык удалён из избранного' });
+    });
+
+    it('returns 404 when removing a skill that is not a favorite', async () => {
+      const owner = await registerUser(app);
+      const user = await registerUser(app);
+      const skillId = await createSkill(owner.accessToken);
+
+      await request(app.getHttpServer())
+        .delete(`/skills/${skillId}/favorite`)
+        .set('Authorization', `Bearer ${user.accessToken}`)
+        .expect(404);
+    });
+  });
 });

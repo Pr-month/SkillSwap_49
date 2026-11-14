@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
@@ -57,5 +59,25 @@ export class SkillsController {
     @CurrentUser() user: JwtPayload,
   ) {
     await this.skillsService.remove(id, user.sub);
+  }
+
+  @Post(':id/favorite')
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  addFavorite(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.skillsService.addFavorite(id, user.sub);
+  }
+
+  @Delete(':id/favorite')
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  removeFavorite(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.skillsService.removeFavorite(id, user.sub);
   }
 }
