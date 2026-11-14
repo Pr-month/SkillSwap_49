@@ -8,21 +8,25 @@ import { type JwtPayload } from './auth.types';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { HttpCode } from '@nestjs/common';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AuthThrottlerGuard } from '../common/guards/auth-throttler.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthThrottlerGuard)
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
 
+  @UseGuards(AuthThrottlerGuard)
   @Post('login')
   Login(@Body() login: LoginDto) {
     return this.authService.login(login);
   }
 
+  @UseGuards(AuthThrottlerGuard)
   @HttpCode(200)
   @Post('refresh')
   refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {

@@ -21,8 +21,12 @@ export class RequestsController {
   constructor(private readonly requestsService: RequestsService) {}
 
   @Post()
-  create(@Body() createRequestDto: CreateRequestDto) {
-    return this.requestsService.create(createRequestDto);
+  @UseGuards(AccessTokenGuard)
+  create(
+    @Body() createRequestDto: CreateRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.requestsService.create(createRequestDto, user.sub);
   }
 
   @Get()
@@ -36,14 +40,25 @@ export class RequestsController {
     return this.requestsService.findIncoming(user.sub);
   }
 
+  @Get('outgoing')
+  @UseGuards(AccessTokenGuard)
+  findOutgoing(@CurrentUser() user: JwtPayload) {
+    return this.requestsService.findOutgoing(user.sub);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.requestsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  @UseGuards(AccessTokenGuard)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, user.sub);
   }
 
   @UseGuards(AccessTokenGuard)
