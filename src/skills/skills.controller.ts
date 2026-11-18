@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';
@@ -23,6 +25,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+@ApiTags('skills')
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
@@ -34,7 +37,6 @@ export class SkillsController {
   @ApiResponse({ status: 201, description: 'Навык создан' })
   @ApiResponse({ status: 401, description: 'Неавторизован' })
   @ApiResponse({ status: 404, description: 'Категория не найдена' })
-  @UseGuards(AccessTokenGuard)
   create(
     @Body() createSkillDto: CreateSkillDto,
     @CurrentUser() user: JwtPayload,
@@ -93,27 +95,22 @@ export class SkillsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Добавить навык в избранное' })
   @ApiResponse({ status: 201, description: 'Добавлено' })
-  @ApiResponse({ status: 401, description: 'Неавторизован' })
-  @ApiResponse({ status: 404, description: 'Навык не найден' })
-  @ApiResponse({ status: 409, description: 'Уже в избранном' })
-  async addToFavorites(
+  addFavorite(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    await this.skillsService.addToFavorites(id, user.sub);
+    return this.skillsService.addFavorite(id, user.sub);
   }
 
   @Delete(':id/favorite')
   @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Удалить навык из избранного' })
-  @ApiResponse({ status: 200, description: 'Удалено' })
-  @ApiResponse({ status: 401, description: 'Неавторизован' })
-  @ApiResponse({ status: 404, description: 'Навык не найден в избранном' })
-  async removeFromFavorites(
+  removeFavorite(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
   ) {
-    await this.skillsService.removeFromFavorites(id, user.sub);
+    return this.skillsService.removeFavorite(id, user.sub);
   }
 }

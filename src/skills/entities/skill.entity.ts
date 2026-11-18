@@ -5,7 +5,6 @@ import {
   ManyToOne,
   ManyToMany,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 
@@ -28,13 +27,13 @@ export class Skill {
   images!: string[];
 
   @ManyToOne(() => User, (user) => user.skills, { nullable: false })
-  owner!: Relation<User>;
+  owner!: User;
 
   @ManyToOne(() => Category, (category) => category.skills, {
     nullable: true,
   })
-  category!: Relation<Category> | null;
+  category!: Category | null;
 
   @ManyToMany(() => User, (user) => user.favoriteSkills)
-  favoritedBy!: Relation<User[]>;
+  favoritedByUsers!: User[];
 }

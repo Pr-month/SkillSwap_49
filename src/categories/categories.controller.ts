@@ -26,7 +26,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 @ApiTags('categories')
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) { }
+  constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
   @UseGuards(AccessTokenGuard, RolesGuard)
@@ -36,7 +36,10 @@ export class CategoriesController {
   @ApiResponse({ status: 201, description: 'Категория создана' })
   @ApiResponse({ status: 401, description: 'Неавторизован' })
   @ApiResponse({ status: 403, description: 'Нет прав' })
-  @ApiResponse({ status: 404, description: 'Родительская категория не найдена' })
+  @ApiResponse({
+    status: 404,
+    description: 'Родительская категория не найдена',
+  })
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoriesService.create(createCategoryDto);
   }

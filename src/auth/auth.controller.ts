@@ -15,11 +15,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { AuthThrottlerGuard } from '../common/guards/auth-throttler.guard';
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthThrottlerGuard)
   @Post('register')
   @ApiOperation({ summary: 'Регистрация нового пользователя' })
   @ApiResponse({
@@ -31,6 +34,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @UseGuards(AuthThrottlerGuard)
   @Post('login')
   @ApiOperation({ summary: 'Вход по email и паролю' })
   @ApiResponse({
@@ -42,6 +46,7 @@ export class AuthController {
     return this.authService.login(login);
   }
 
+  @UseGuards(AuthThrottlerGuard)
   @HttpCode(200)
   @Post('refresh')
   @ApiOperation({ summary: 'Обновление пары токенов' })

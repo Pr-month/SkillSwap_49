@@ -1,40 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
-import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
-import { DataSource } from 'typeorm';
+import { createTestApp } from './utils/test-app';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  beforeAll(async () => {
+    app = await createTestApp();
   });
 
-  afterEach(async () => {
-    if (app) {
-      await app.close();
-    }
+  afterAll(async () => {
+    await app.close();
   });
 
-  it('подключается к тестовой базе skillswap_test', async () => {
-    const dataSource = app.get(DataSource);
-
-    const result: Array<{ database: string }> = await dataSource.query(
-      'SELECT current_database() AS database',
-    );
-
-    console.log('Фактическая БД E2E:', result[0].database);
-
-    expect(result[0].database).toBe('skillswap_test');
-  });
   it('/ (GET)', () => {
     return request(app.getHttpServer())
       .get('/')

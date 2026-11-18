@@ -82,10 +82,15 @@ export class RequestsController {
   }
 
   @Patch(':id')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить заявку' })
-  @ApiResponse({ status: 200, description: 'Заявка обновлена' })
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestsService.update(+id, updateRequestDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, user.sub);
   }
 
   @UseGuards(AccessTokenGuard)

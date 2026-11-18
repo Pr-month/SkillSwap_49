@@ -122,6 +122,15 @@ export class AllExceptionFilter implements ExceptionFilter {
         };
       }
 
+      // 429
+      if (status === (HttpStatus.TOO_MANY_REQUESTS as number)) {
+        return {
+          status,
+          message: 'Слишком много запросов. Попробуйте позже',
+          error: 'Too Many Requests',
+        };
+      }
+
       return {
         status,
         message,

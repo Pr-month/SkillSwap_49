@@ -58,7 +58,7 @@ export class User {
   })
   wantToLearn!: Category[];
 
-  @ManyToMany(() => Skill, (skill) => skill.favoritedBy)
+  @ManyToMany(() => Skill, (skill) => skill.favoritedByUsers)
   @JoinTable({
     name: 'user_favorite_skills',
     joinColumn: {

@@ -1,4 +1,5 @@
 import { ConfigModule } from '@nestjs/config';
+import { createSeedDataSource } from '../config/database.config';
 import { hash } from 'bcryptjs';
 import { appConfig } from '../config/app.config';
 import { User } from '../users/entities/user.entity';
@@ -18,14 +19,12 @@ async function seedAdmin(): Promise<void> {
     );
   }
 
-  const { AppDataSource } = await import('../config/database.config');
-
-  AppDataSource.setOptions({ logging: false });
+  const dataSource = createSeedDataSource();
 
   try {
-    await AppDataSource.initialize();
+    await dataSource.initialize();
 
-    const usersRepo = AppDataSource.getRepository(User);
+    const usersRepo = dataSource.getRepository(User);
     const existingUser = await usersRepo.findOneBy({ email });
 
     if (existingUser) {
@@ -52,8 +51,8 @@ async function seedAdmin(): Promise<void> {
 
     console.log('Сидинг администратора завершён. Администратор создан');
   } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
     }
   }
 }

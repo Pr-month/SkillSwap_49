@@ -1,35 +1,48 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-
 import { SkillsService } from './skills.service';
 import { Skill } from './entities/skill.entity';
 import { Category } from '../categories/entities/category.entity';
 import { User } from '../users/entities/user.entity';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 
 describe('SkillsService', () => {
   let service: SkillsService;
-
-  const skillsRepository = {
-    findOne: jest.fn(),
-    findOneBy: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    remove: jest.fn(),
+  let skillsRepository: {
+    create: jest.Mock;
+    save: jest.Mock;
+    findOne: jest.Mock;
+    findOneBy: jest.Mock;
+    remove: jest.Mock;
   };
-
-  const categoriesRepository = {
-    findOneBy: jest.fn(),
-  };
-
-  const usersRepository = {
-    findOne: jest.fn(),
-    findOneBy: jest.fn(),
-    save: jest.fn(),
+  let categoriesRepository: { findOneBy: jest.Mock };
+  let usersRepository: {
+    findOneBy: jest.Mock;
+    findOne: jest.Mock;
+    save: jest.Mock;
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    skillsRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      remove: jest.fn(),
+    };
+    categoriesRepository = { findOneBy: jest.fn() };
+    usersRepository = {
+      findOneBy: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -46,98 +59,211 @@ describe('SkillsService', () => {
     service = module.get<SkillsService>(SkillsService);
   });
 
-  describe('addToFavorites', () => {
-    it('adds a skill to user favorites', async () => {
-      const user = { id: 1, favoriteSkills: [] as Array<{ id: number }> };
-      const skill = { id: 10 };
+  describe('create', () => {
+    const dto: CreateSkillDto = {
+      title: '  React  ',
+      description: '  Frontend framework  ',
+      categoryId: 1,
+      images: ['a.png'],
+    };
 
-      usersRepository.findOne.mockResolvedValue(user);
-      skillsRepository.findOneBy.mockResolvedValue(skill);
-      usersRepository.save.mockResolvedValue(user);
+    it('creates a skill', async () => {
+      const owner = { id: 10 };
+      const category = { id: 1 };
+      usersRepository.findOneBy.mockResolvedValue(owner);
+      categoriesRepository.findOneBy.mockResolvedValue(category);
+      const saved = { id: 1, title: 'React', owner, category };
+      skillsRepository.create.mockReturnValue(saved);
+      skillsRepository.save.mockResolvedValue(saved);
 
-      await service.addToFavorites(10, 1);
+      const result = await service.create(dto, 10);
 
-      expect(user.favoriteSkills).toContain(skill);
-      expect(usersRepository.save).toHaveBeenCalledWith(user);
-    });
-
-    it('throws 404 when user is not found', async () => {
-      usersRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.addToFavorites(10, 1)).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-
-    it('throws 404 when skill is not found', async () => {
-      usersRepository.findOne.mockResolvedValue({
-        id: 1,
-        favoriteSkills: [],
+      expect(skillsRepository.create).toHaveBeenCalledWith({
+        title: 'React',
+        description: 'Frontend framework',
+        images: ['a.png'],
+        owner,
+        category,
       });
-      skillsRepository.findOneBy.mockResolvedValue(null);
-
-      await expect(service.addToFavorites(10, 1)).rejects.toThrow(
-        NotFoundException,
-      );
+      expect(result).toEqual(saved);
     });
 
-    it('throws 409 when skill is already in favorites', async () => {
-      const user = { id: 1, favoriteSkills: [{ id: 10 }] };
+    it('throws BadRequestException for an empty title', async () => {
+      await expect(
+        service.create({ ...dto, title: '   ' }, 10),
+      ).rejects.toThrow(BadRequestException);
+    });
 
-      usersRepository.findOne.mockResolvedValue(user);
-      skillsRepository.findOneBy.mockResolvedValue({ id: 10 });
+    it('throws NotFoundException when the owner does not exist', async () => {
+      usersRepository.findOneBy.mockResolvedValue(null);
 
-      await expect(service.addToFavorites(10, 1)).rejects.toThrow(
-        ConflictException,
-      );
-      expect(usersRepository.save).not.toHaveBeenCalled();
+      await expect(service.create(dto, 10)).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws NotFoundException when the category does not exist', async () => {
+      usersRepository.findOneBy.mockResolvedValue({ id: 10 });
+      categoriesRepository.findOneBy.mockResolvedValue(null);
+
+      await expect(service.create(dto, 10)).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('removeFromFavorites', () => {
-    it('removes a skill from user favorites', async () => {
-      const user = { id: 1, favoriteSkills: [{ id: 10 }] };
-
-      usersRepository.findOne.mockResolvedValue(user);
-      skillsRepository.findOneBy.mockResolvedValue({ id: 10 });
-      usersRepository.save.mockResolvedValue(user);
-
-      await service.removeFromFavorites(10, 1);
-
-      expect(user.favoriteSkills).toHaveLength(0);
-      expect(usersRepository.save).toHaveBeenCalledWith(user);
+  describe('update', () => {
+    it('throws BadRequestException for an invalid id', async () => {
+      await expect(service.update(0, {}, 10)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
-    it('throws 404 when user is not found', async () => {
-      usersRepository.findOne.mockResolvedValue(null);
+    it('throws NotFoundException when the skill does not exist', async () => {
+      skillsRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.removeFromFavorites(10, 1)).rejects.toThrow(
+      await expect(service.update(1, {}, 10)).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('throws 404 when skill is not found', async () => {
-      usersRepository.findOne.mockResolvedValue({
+    it('throws ForbiddenException when the user is not the owner', async () => {
+      skillsRepository.findOne.mockResolvedValue({ id: 1, owner: { id: 2 } });
+
+      await expect(service.update(1, {}, 10)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('updates the skill fields', async () => {
+      const skill = {
         id: 1,
+        title: 'Old',
+        description: 'Old desc',
+        owner: { id: 10 },
+      };
+      skillsRepository.findOne.mockResolvedValue(skill);
+      skillsRepository.save.mockImplementation((s: Skill) =>
+        Promise.resolve(s),
+      );
+
+      const dto: UpdateSkillDto = { title: 'New', description: 'Desc' };
+      await service.update(1, dto, 10);
+
+      expect(skill.title).toBe('New');
+      expect(skill.description).toBe('Desc');
+    });
+
+    it('throws NotFoundException when the new category does not exist', async () => {
+      const skill = { id: 1, owner: { id: 10 } };
+      skillsRepository.findOne.mockResolvedValue(skill);
+      categoriesRepository.findOneBy.mockResolvedValue(null);
+
+      await expect(service.update(1, { categoryId: 99 }, 10)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('updates the category', async () => {
+      const skill = { id: 1, owner: { id: 10 }, category: null };
+      const category = { id: 2 };
+      skillsRepository.findOne.mockResolvedValue(skill);
+      categoriesRepository.findOneBy.mockResolvedValue(category);
+      skillsRepository.save.mockImplementation((s: Skill) =>
+        Promise.resolve(s),
+      );
+
+      await service.update(1, { categoryId: 2 }, 10);
+
+      expect(skill.category).toEqual(category);
+    });
+  });
+
+  describe('remove', () => {
+    it('throws NotFoundException when the skill does not exist', async () => {
+      skillsRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.remove(1, 10)).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws ForbiddenException when the user is not the owner', async () => {
+      skillsRepository.findOne.mockResolvedValue({ id: 1, owner: { id: 2 } });
+
+      await expect(service.remove(1, 10)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('removes the skill for its owner', async () => {
+      const skill = { id: 1, owner: { id: 10 } };
+      skillsRepository.findOne.mockResolvedValue(skill);
+      skillsRepository.remove.mockResolvedValue(skill);
+
+      await service.remove(1, 10);
+
+      expect(skillsRepository.remove).toHaveBeenCalledWith(skill);
+    });
+  });
+
+  describe('addFavorite', () => {
+    it('adds the skill to the user favorites', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
         favoriteSkills: [],
       });
+      usersRepository.save.mockImplementation(
+        (u: { favoriteSkills: unknown[] }) => Promise.resolve(u),
+      );
+
+      const result = await service.addFavorite(1, 10);
+
+      expect(usersRepository.save).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Навык добавлен в избранное' });
+    });
+
+    it('throws NotFoundException when the skill does not exist', async () => {
       skillsRepository.findOneBy.mockResolvedValue(null);
 
-      await expect(service.removeFromFavorites(10, 1)).rejects.toThrow(
+      await expect(service.addFavorite(1, 10)).rejects.toThrow(
         NotFoundException,
       );
     });
 
-    it('throws 404 when skill is not in favorites', async () => {
-      const user = { id: 1, favoriteSkills: [] as Array<{ id: number }> };
+    it('throws ConflictException when the skill is already a favorite', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [{ id: 1 }],
+      });
 
-      usersRepository.findOne.mockResolvedValue(user);
-      skillsRepository.findOneBy.mockResolvedValue({ id: 10 });
+      await expect(service.addFavorite(1, 10)).rejects.toThrow(
+        ConflictException,
+      );
+    });
+  });
 
-      await expect(service.removeFromFavorites(10, 1)).rejects.toThrow(
+  describe('removeFavorite', () => {
+    it('removes the skill from the user favorites', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [{ id: 1 }],
+      });
+      usersRepository.save.mockImplementation(
+        (u: { favoriteSkills: unknown[] }) => Promise.resolve(u),
+      );
+
+      const result = await service.removeFavorite(1, 10);
+
+      expect(usersRepository.save).toHaveBeenCalled();
+      expect(result).toEqual({ message: 'Навык удалён из избранного' });
+    });
+
+    it('throws NotFoundException when the skill is not a favorite', async () => {
+      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
+      usersRepository.findOne.mockResolvedValue({
+        id: 10,
+        favoriteSkills: [],
+      });
+
+      await expect(service.removeFavorite(1, 10)).rejects.toThrow(
         NotFoundException,
       );
-      expect(usersRepository.save).not.toHaveBeenCalled();
     });
   });
 });

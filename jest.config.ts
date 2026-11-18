@@ -6,8 +6,12 @@ export default {
   rootDir: '.',
   testRegex: '.*\\.spec\\.ts$',
   transform: {
-    '^.+\\.(t|j)s$': 'ts-jest',
+    '^.+\\.ts$': 'ts-jest',
+    '^.+\\.js$': '@swc/jest',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@nestjs/typeorm|@nestjs/jwt|@nestjs/config|@nestjs/passport|@nestjs/mapped-types|@nestjs/throttler|@nestjs/websockets|@nestjs/platform-socket.io)/)',
+  ],
   moduleNameMapper: {
     ...pathsToModuleNameMapper(compilerOptions.paths || {}, {
       prefix: '<rootDir>/',
