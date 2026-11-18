@@ -1,0 +1,25 @@
+{
+  "moduleFileExtensions": [
+    "js",
+    "json",
+    "ts"
+  ],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": {
+    "^.+\\.ts$": "ts-jest",
+    "^.+\\.js$": "@swc/jest"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(@nestjs/typeorm|@nestjs/jwt|@nestjs/config|@nestjs/passport|@nestjs/mapped-types|@nestjs/throttler|@nestjs/websockets|@nestjs/platform-socket.io)/)"
+  ],
+  "setupFiles": [
+    "<rootDir>/setup-env.ts"
+  ],
+  "maxWorkers": 1,
+  "testTimeout": 30000,
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/../src/$1"
+  }
+}
