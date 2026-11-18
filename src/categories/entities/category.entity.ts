@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { Skill } from '../../skills/entities/skill.entity';
 import { User } from '../../users/entities/user.entity';
+import type { Relation } from 'typeorm';
 
 @Entity('categories')
 export class Category {
@@ -20,7 +21,7 @@ export class Category {
   @ManyToOne(() => Category, (category) => category.children, {
     nullable: true,
   })
-  parent!: Category | null;
+  parent!: Relation<Category> | null;
 
   @OneToMany(() => Category, (category) => category.parent)
   children!: Category[];

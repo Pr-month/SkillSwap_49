@@ -11,14 +11,18 @@ import { Type, Transform } from 'class-transformer';
 
 export class UpdateSkillDto {
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(
+    ({ value }) => (typeof value === 'string' ? value.trim() : value) as string,
+  )
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   title?: string;
 
   @IsOptional()
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(
+    ({ value }) => (typeof value === 'string' ? value.trim() : value) as string,
+  )
   @IsString()
   @IsNotEmpty()
   description?: string;

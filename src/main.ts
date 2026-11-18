@@ -1,19 +1,32 @@
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { join } from 'path';
 
 import { AppModule } from './app.module';
-import { AllExceptionFilter } from './common/filters/all-exception.filter'; // ← NEW
+import { AllExceptionFilter } from './common/filters/all-exception.filter';
 import { appConfig, type TAppConfig } from './config/app.config';
+import { validateEnv } from './config/env.validation';
 
 async function bootstrap() {
+  // Ранняя проверка окружения: приложение не стартует с невалидными настройками.
+  const env = validateEnv();
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  app.use(helmet());
   app.use(cookieParser());
 
-  app.useGlobalFilters(new AllExceptionFilter()); // ← NEW
+  // За прокси используем реальный IP клиента (для корректного rate limiting).
+  if (env.trustProxy) {
+    const express = app.getHttpAdapter().getInstance();
+    express.set('trust proxy', true);
+  }
+
+  app.useGlobalFilters(new AllExceptionFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useGlobalPipes(
@@ -31,6 +44,17 @@ async function bootstrap() {
   const config = app.get<TAppConfig>(appConfig.KEY);
 
   app.useStaticAssets(join(process.cwd(), 'public'));
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SkillSwap API')
+    .setDescription('Документация API сервиса SkillSwap')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('api', app, swaggerDocument);
 
   await app.listen(config.port);
 }

@@ -17,6 +17,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
-    "esModuleInterop": true
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "paths": {
+      "src/*": ["src/*"]
+    }
   }
 }
