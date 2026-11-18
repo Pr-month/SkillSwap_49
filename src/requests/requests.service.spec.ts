@@ -69,8 +69,11 @@ describe('RequestsService', () => {
 
     it('creates a pending request and notifies the receiver', async () => {
       usersRepository.findOneBy.mockResolvedValue({ id: 10, name: 'Sender' });
-      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
-      skillsRepository.findOne.mockResolvedValue({
+      skillsRepository.findOne.mockResolvedValueOnce({
+        id: 1,
+        owner: { id: 10 },
+      });
+      skillsRepository.findOne.mockResolvedValueOnce({
         id: 2,
         owner: { id: 20 },
       });
@@ -83,9 +86,10 @@ describe('RequestsService', () => {
       expect(requestsRepository.create).toHaveBeenCalledWith({
         sender: { id: 10, name: 'Sender' },
         receiver: { id: 20 },
-        offeredSkill: { id: 1 },
+        offeredSkill: { id: 1, owner: { id: 10 } },
         requestedSkill: { id: 2, owner: { id: 20 } },
         status: RequestStatus.PENDING,
+        isRead: false,
       });
       expect(notificationsService.notifyRequestReceived).toHaveBeenCalledWith(
         20,
@@ -97,15 +101,28 @@ describe('RequestsService', () => {
 
     it('throws NotFoundException when the offered skill is missing', async () => {
       usersRepository.findOneBy.mockResolvedValue({ id: 10 });
-      skillsRepository.findOneBy.mockResolvedValue(null);
+      skillsRepository.findOne.mockResolvedValueOnce(null);
 
       await expect(service.create(dto, 10)).rejects.toThrow(NotFoundException);
     });
 
+    it('rejects an offered skill owned by another user', async () => {
+      usersRepository.findOneBy.mockResolvedValue({ id: 10 });
+      skillsRepository.findOne
+        .mockResolvedValueOnce({ id: 1, owner: { id: 30 } })
+        .mockResolvedValueOnce({ id: 2, owner: { id: 20 } });
+
+      await expect(service.create(dto, 10)).rejects.toThrow(ForbiddenException);
+      expect(requestsRepository.save).not.toHaveBeenCalled();
+    });
+
     it('throws BadRequestException when sending a request to self', async () => {
       usersRepository.findOneBy.mockResolvedValue({ id: 10 });
-      skillsRepository.findOneBy.mockResolvedValue({ id: 1 });
-      skillsRepository.findOne.mockResolvedValue({
+      skillsRepository.findOne.mockResolvedValueOnce({
+        id: 1,
+        owner: { id: 10 },
+      });
+      skillsRepository.findOne.mockResolvedValueOnce({
         id: 2,
         owner: { id: 10 },
       });

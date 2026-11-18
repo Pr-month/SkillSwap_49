@@ -37,10 +37,12 @@ export const databaseConfig = registerAs('DB_CONFIG', (): DataSourceOptions => {
  * Миграции здесь не выполняются автоматически: для них используйте
  * `src/data-source.ts` и команды npm run migration:*.
  */
-export const AppDataSource = new DataSource({
-  ...databaseConfig(),
-  entities: ['src/**/*.entity.ts'],
-  migrations: ['src/migrations/*.ts'],
-  migrationsRun: false,
-  logging: false,
-});
+export function createSeedDataSource(): DataSource {
+  return new DataSource({
+    ...databaseConfig(),
+    entities: ['src/**/*.entity.ts'],
+    migrations: ['src/migrations/*.ts'],
+    migrationsRun: false,
+    logging: false,
+  });
+}

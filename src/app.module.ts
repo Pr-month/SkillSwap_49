@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      ignoreEnvFile: process.env.NODE_ENV === 'test',
       load: [appConfig, databaseConfig, jwtConfig, throttleConfig],
     }),
     TypeOrmModule.forRootAsync({

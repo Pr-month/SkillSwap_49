@@ -1,17 +1,18 @@
+import 'dotenv/config';
 import { hash } from 'bcryptjs';
 import { appConfig } from '../config/app.config';
-import { AppDataSource } from '../config/database.config';
+import { createSeedDataSource } from '../config/database.config';
 import { seedUsers } from './data/seed-users.data';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/users.enums';
 
 async function seedUsersData(): Promise<void> {
-  AppDataSource.setOptions({ logging: false });
+  const dataSource = createSeedDataSource();
 
   try {
-    await AppDataSource.initialize();
+    await dataSource.initialize();
 
-    const usersRepo = AppDataSource.getRepository(User);
+    const usersRepo = dataSource.getRepository(User);
     const config = appConfig();
 
     let createdCount = 0;
@@ -47,11 +48,11 @@ async function seedUsersData(): Promise<void> {
     }
 
     console.log(
-      `Сидинг завершён. Создано: ${createdCount}, пропущено: ${skippedCount}`,
+      `Сидинг пользователей завершён. Создано: ${createdCount}, пропущено: ${skippedCount}`,
     );
   } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
     }
   }
 }

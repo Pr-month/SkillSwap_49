@@ -40,7 +40,7 @@ export async function createTestApp(): Promise<INestApplication> {
 
 const TABLES = [
   'notifications',
-  'skill_favorites',
+  'user_favorite_skills',
   'requests',
   'skills',
   'categories',

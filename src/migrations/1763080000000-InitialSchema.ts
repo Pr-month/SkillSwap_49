@@ -79,10 +79,10 @@ export class InitialSchema1763080000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      CREATE TABLE "skill_favorites" (
+      CREATE TABLE "user_favorite_skills" (
         "userId" integer NOT NULL,
         "skillId" integer NOT NULL,
-        CONSTRAINT "PK_skill_favorites" PRIMARY KEY ("userId", "skillId")
+        CONSTRAINT "PK_user_favorite_skills" PRIMARY KEY ("userId", "skillId")
       )
     `);
 
@@ -149,12 +149,12 @@ export class InitialSchema1763080000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
-      ALTER TABLE "skill_favorites"
+      ALTER TABLE "user_favorite_skills"
         ADD CONSTRAINT "FK_sf_user" FOREIGN KEY ("userId")
         REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE NO ACTION
     `);
     await queryRunner.query(`
-      ALTER TABLE "skill_favorites"
+      ALTER TABLE "user_favorite_skills"
         ADD CONSTRAINT "FK_sf_skill" FOREIGN KEY ("skillId")
         REFERENCES "skills"("id") ON DELETE CASCADE ON UPDATE NO ACTION
     `);
@@ -193,7 +193,7 @@ export class InitialSchema1763080000000 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE "notifications"`);
-    await queryRunner.query(`DROP TABLE "skill_favorites"`);
+    await queryRunner.query(`DROP TABLE "user_favorite_skills"`);
     await queryRunner.query(`DROP TABLE "requests"`);
     await queryRunner.query(`DROP TABLE "user_want_to_learn"`);
     await queryRunner.query(`DROP TABLE "skills"`);

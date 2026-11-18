@@ -176,7 +176,7 @@ describe('Skills (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post(`/skills/${skillId}/favorite`)
         .set('Authorization', `Bearer ${user.accessToken}`)
-        .expect(200);
+        .expect(201);
 
       expect(res.body).toEqual({ message: 'Навык добавлен в избранное' });
     });
@@ -189,7 +189,7 @@ describe('Skills (e2e)', () => {
       await request(app.getHttpServer())
         .post(`/skills/${skillId}/favorite`)
         .set('Authorization', `Bearer ${user.accessToken}`)
-        .expect(200);
+        .expect(201);
 
       await request(app.getHttpServer())
         .post(`/skills/${skillId}/favorite`)
@@ -214,7 +214,7 @@ describe('Skills (e2e)', () => {
       await request(app.getHttpServer())
         .post(`/skills/${skillId}/favorite`)
         .set('Authorization', `Bearer ${user.accessToken}`)
-        .expect(200);
+        .expect(201);
 
       const res = await request(app.getHttpServer())
         .delete(`/skills/${skillId}/favorite`)

@@ -1,16 +1,16 @@
 import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
   BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserRole } from '../users/users.enums';
 import type { JwtPayload } from '../auth/auth.types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { CreateRequestDto } from './dto/create-request.dto';
 import { Request } from './entities/request.entity';
 import { RequestStatus } from './request.enums';
 import { User } from '../users/entities/user.entity';
@@ -39,24 +39,34 @@ export class RequestsService {
       throw new NotFoundException('Пользователь не найден');
     }
 
-    const offeredSkill = await this.skillsRepository.findOneBy({
-      id: createRequestDto.offeredSkillId,
-    });
+    const [offeredSkill, requestedSkill] = await Promise.all([
+      this.skillsRepository.findOne({
+        where: { id: createRequestDto.offeredSkillId },
+        relations: { owner: true },
+      }),
+      this.skillsRepository.findOne({
+        where: { id: createRequestDto.requestedSkillId },
+        relations: { owner: true },
+      }),
+    ]);
 
     if (!offeredSkill) {
       throw new NotFoundException('Предлагаемый навык не найден');
     }
 
-    const requestedSkill = await this.skillsRepository.findOne({
-      where: { id: createRequestDto.requestedSkillId },
-      relations: { owner: true },
-    });
-
     if (!requestedSkill) {
       throw new NotFoundException('Запрашиваемый навык не найден');
     }
 
+    if (offeredSkill.owner?.id !== senderId) {
+      throw new ForbiddenException('Предлагать можно только свой навык');
+    }
+
     const receiver = requestedSkill.owner;
+
+    if (!receiver) {
+      throw new NotFoundException('Владелец запрашиваемого навыка не найден');
+    }
 
     if (receiver.id === senderId) {
       throw new BadRequestException('Нельзя отправить заявку самому себе');
@@ -68,16 +78,15 @@ export class RequestsService {
       offeredSkill,
       requestedSkill,
       status: RequestStatus.PENDING,
+      isRead: false,
     });
 
     const saved = await this.requestsRepository.save(request);
-
     await this.notificationsService.notifyRequestReceived(
       receiver.id,
       sender.name,
       saved.id,
     );
-
     return saved;
   }
 

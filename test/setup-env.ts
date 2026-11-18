@@ -1,7 +1,24 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { parse } from 'dotenv';
+
+const envPath = resolve(process.cwd(), '.env.test.local');
+if (!process.env.DATABASE_URL && existsSync(envPath)) {
+  const testEnv = parse(readFileSync(envPath));
+  if (
+    testEnv.NODE_ENV !== 'test' ||
+    testEnv.DB_DATABASE !== 'skillswap_test' ||
+    testEnv.DATABASE_URL
+  ) {
+    throw new Error('.env.test.local должен указывать на базу skillswap_test');
+  }
+  Object.assign(process.env, testEnv);
+}
+
 // Environment for E2E tests. Runs before every test file.
 // In CI, DATABASE_URL is provided and takes precedence in database.config.ts.
 process.env.NODE_ENV = 'test';
-process.env.DB_DATABASE = process.env.DB_DATABASE || 'skillswap_test';
+process.env.DB_DATABASE = 'skillswap_test';
 process.env.DB_SYNCHRONIZE = 'true';
 process.env.DB_LOGGING = 'false';
 process.env.JWT_ACCESS_SECRET =

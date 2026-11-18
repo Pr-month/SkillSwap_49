@@ -172,7 +172,7 @@ npm run migration:show
 
 Первая миграция `src/migrations/1763080000000-InitialSchema.ts` создаёт все
 текущие таблицы (`users`, `categories`, `skills`, `user_want_to_learn`,
-`requests`, `skill_favorites`, `notifications`).
+`requests`, `user_favorite_skills`, `notifications`).
 
 ---
 

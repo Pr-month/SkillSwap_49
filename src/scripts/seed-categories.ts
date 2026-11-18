@@ -1,14 +1,15 @@
+import 'dotenv/config';
 import { Category } from '../categories/entities/category.entity';
-import { AppDataSource } from '../config/database.config';
+import { createSeedDataSource } from '../config/database.config';
 import { CategoriesData } from './data/seed-categories.data';
 
 async function seedCategories(): Promise<void> {
-  AppDataSource.setOptions({ logging: false });
+  const dataSource = createSeedDataSource();
 
   try {
-    await AppDataSource.initialize();
+    await dataSource.initialize();
 
-    const categoriesRepo = AppDataSource.getRepository(Category);
+    const categoriesRepo = dataSource.getRepository(Category);
     const categoriesCount = await categoriesRepo.count();
 
     if (categoriesCount > 0) {
@@ -40,12 +41,12 @@ async function seedCategories(): Promise<void> {
     }
 
     console.log(
-      `Сидинг завершён. Создано категорий: ${createdParentsCount}, ` +
+      `Сидинг категорий завершён. Создано категорий: ${createdParentsCount}, ` +
         `подкатегорий: ${createdChildrenCount}`,
     );
   } finally {
-    if (AppDataSource.isInitialized) {
-      await AppDataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
     }
   }
 }

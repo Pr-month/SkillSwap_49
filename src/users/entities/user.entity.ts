@@ -60,7 +60,7 @@ export class User {
 
   @ManyToMany(() => Skill, (skill) => skill.favoritedByUsers)
   @JoinTable({
-    name: 'skill_favorites',
+    name: 'user_favorite_skills',
     joinColumn: {
       name: 'userId',
       referencedColumnName: 'id',
